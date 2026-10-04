@@ -1,0 +1,24 @@
+{
+  "name": "system-capacity-lab",
+  "version": "1.0.0",
+  "description": "A reproducible environment for capacity measurement, concurrency invariants, and failover testing.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "load:health": "node scripts/load.js http://127.0.0.1:4000/health 50 10",
+    "load:database": "node scripts/load.js http://127.0.0.1:4000/properties/5000 50 10",
+    "load:search": "node scripts/load.js 'http://127.0.0.1:4000/search?city=HCM&limit=20' 50 10",
+    "test:concurrency": "node scripts/test-concurrency.js",
+    "test:failover": "bash scripts/test-failover.sh",
+    "test:gateway": "bash scripts/test-gateway.sh",
+    "test:gateway-failover": "bash scripts/test-gateway-failover.sh",
+    "ci:local": "bash scripts/ci-local.sh",
+    "test:all": "bash scripts/run-all.sh"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  }
+}

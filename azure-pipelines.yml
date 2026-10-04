@@ -1,0 +1,38 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+
+  - task: NodeTool@0
+    displayName: Use Node.js 24
+    inputs:
+      versionSpec: "24.x"
+
+  - script: npm ci
+    displayName: Install dependencies
+
+  - script: docker compose up -d --build --wait
+    displayName: Build and start the system
+
+  - script: npm run test:concurrency
+    displayName: Test double-booking protection
+
+  - script: npm run test:gateway
+    displayName: Test API Gateway policies
+
+  - script: npm run test:failover
+    displayName: Test application failover
+
+  - script: npm run test:gateway-failover
+    displayName: Test API Gateway failover
+
+  - script: docker compose ps
+    displayName: Show system status
+
+  - script: docker compose down
+    displayName: Clean up test environment
+    condition: always()
