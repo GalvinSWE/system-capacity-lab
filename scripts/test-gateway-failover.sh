@@ -17,30 +17,30 @@ request_gateways() {
   done
 }
 
-printf '\n=== Trước sự cố: cả hai Gateway nhận traffic ===\n'
+printf '\n=== Before the failure: both gateways receive traffic ===\n'
 before="$(request_gateways 10)"
 printf '%s\n' "$before"
 
 if ! grep -q '^gateway-a$' <<<"$before" || ! grep -q '^gateway-b$' <<<"$before"; then
-  printf 'FAIL: chưa quan sát được cả gateway-a và gateway-b\n' >&2
+  printf 'FAIL: did not observe both gateway-a and gateway-b\n' >&2
   exit 1
 fi
 
-printf '\n=== Giả lập gateway-a bị sập ===\n'
+printf '\n=== Simulating a gateway-a outage ===\n'
 docker compose stop gateway-a >/dev/null
 
 after="$(request_gateways 10)"
 printf '%s\n' "$after"
 
 if grep -q '^gateway-a$' <<<"$after" || ! grep -q '^gateway-b$' <<<"$after"; then
-  printf 'FAIL: traffic chưa chuyển hoàn toàn sang gateway-b\n' >&2
+  printf 'FAIL: traffic did not fully move to gateway-b\n' >&2
   docker compose start gateway-a >/dev/null
   exit 1
 fi
 
-printf 'PASS: gateway-a sập nhưng 10/10 request vẫn qua gateway-b\n'
+printf 'PASS: gateway-a is down and 10/10 requests still went through gateway-b\n'
 
-printf '\n=== Khởi động và đưa gateway-a trở lại pool ===\n'
+printf '\n=== Restarting gateway-a and returning it to the pool ===\n'
 docker compose start gateway-a >/dev/null
 
 for attempt in {1..20}; do
@@ -58,8 +58,8 @@ recovered="$(request_gateways 20)"
 printf '%s\n' "$recovered"
 
 if ! grep -q '^gateway-a$' <<<"$recovered" || ! grep -q '^gateway-b$' <<<"$recovered"; then
-  printf 'FAIL: gateway-a chưa tham gia lại sau recovery\n' >&2
+  printf 'FAIL: gateway-a did not rejoin after recovery\n' >&2
   exit 1
 fi
 
-printf 'PASS: gateway-a phục hồi và cả hai Gateway tiếp tục chia traffic\n'
+printf 'PASS: gateway-a recovered and both gateways are sharing traffic again\n'

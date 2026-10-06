@@ -9,6 +9,10 @@ CREATE TABLE IF NOT EXISTS properties (
 
 CREATE INDEX IF NOT EXISTS properties_city_idx ON properties(city);
 
+-- Matches the search query (WHERE city = $1 ORDER BY nightly_price, id LIMIT $2)
+-- so PostgreSQL can read the first rows in order instead of sorting every row in the city.
+CREATE INDEX IF NOT EXISTS properties_city_price_id_idx ON properties(city, nightly_price, id);
+
 INSERT INTO properties (name, city, nightly_price)
 SELECT
   'Property ' || number,

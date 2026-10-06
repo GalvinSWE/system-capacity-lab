@@ -27,12 +27,12 @@ const counts = results.reduce((summary, status) => {
 }, {});
 
 const elapsed = Math.round(performance.now() - startedAt);
-console.log(`Đã gửi ${competitors} request đồng thời trong ${elapsed} ms`);
-console.log("Kết quả theo HTTP status:", counts);
+console.log(`Sent ${competitors} concurrent requests in ${elapsed} ms`);
+console.log("Results by HTTP status:", counts);
 
 if (counts[201] !== 1 || counts[409] !== competitors - 1) {
-  console.error("FAIL: invariant chống double booking không được bảo vệ");
+  console.error("FAIL: the double-booking invariant was not protected");
   process.exit(1);
 }
 
-console.log("PASS: chỉ một booking thành công, các request còn lại bị từ chối");
+console.log("PASS: exactly one booking succeeded and every other request was rejected");

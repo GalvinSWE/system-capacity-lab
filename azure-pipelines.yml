@@ -20,6 +20,8 @@ steps:
 
   - script: npm run test:concurrency
     displayName: Test double-booking protection
+    env:
+      BASE_URL: http://127.0.0.1:4080
 
   - script: npm run test:gateway
     displayName: Test API Gateway policies

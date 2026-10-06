@@ -11,30 +11,30 @@ request_instances() {
   done
 }
 
-printf '\n=== Trước khi có sự cố: request được chia cho hai instance ===\n'
+printf '\n=== Before the failure: requests are spread across both instances ===\n'
 before="$(request_instances 10)"
 printf '%s\n' "$before"
 
 if ! grep -q 'app-a' <<<"$before" || ! grep -q 'app-b' <<<"$before"; then
-  printf 'FAIL: chưa quan sát được cả app-a và app-b\n' >&2
+  printf 'FAIL: did not observe both app-a and app-b\n' >&2
   exit 1
 fi
 
-printf '\n=== Giả lập app-a bị sập ===\n'
+printf '\n=== Simulating an app-a outage ===\n'
 docker compose stop app-a >/dev/null
 
 after="$(request_instances 10)"
 printf '%s\n' "$after"
 
 if grep -q 'app-a' <<<"$after" || ! grep -q 'app-b' <<<"$after"; then
-  printf 'FAIL: traffic chưa failover hoàn toàn sang app-b\n' >&2
+  printf 'FAIL: traffic did not fully fail over to app-b\n' >&2
   docker compose start app-a >/dev/null
   exit 1
 fi
 
-printf 'PASS: app-a sập nhưng 10/10 request vẫn được app-b phục vụ\n'
+printf 'PASS: app-a is down and app-b still served 10/10 requests\n'
 
-printf '\n=== Khởi động lại app-a ===\n'
+printf '\n=== Restarting app-a ===\n'
 docker compose start app-a >/dev/null
 
 for attempt in {1..20}; do
@@ -45,8 +45,8 @@ for attempt in {1..20}; do
   sleep 1
 done
 
-# Nginx bản lab dùng DNS tĩnh khi khởi động. Reload để nó resolve lại
-# instance vừa quay lại, tương đương bước load balancer đưa node healthy vào pool.
+# The lab's nginx resolves DNS once at startup. Reload it so it resolves
+# the recovered instance again, like a load balancer returning a healthy node to the pool.
 docker compose exec -T load-balancer nginx -s reload >/dev/null
 sleep 2
 
@@ -54,8 +54,8 @@ recovered="$(request_instances 20)"
 printf '%s\n' "$recovered"
 
 if ! grep -q 'app-a' <<<"$recovered" || ! grep -q 'app-b' <<<"$recovered"; then
-  printf 'FAIL: app-a chưa tham gia lại sau recovery\n' >&2
+  printf 'FAIL: app-a did not rejoin after recovery\n' >&2
   exit 1
 fi
 
-printf 'PASS: app-a phục hồi và tham gia nhận traffic trở lại\n'
+printf 'PASS: app-a recovered and is receiving traffic again\n'
